@@ -54,7 +54,7 @@ for fl in os.listdir('./docs/vacancies'):
     # Увеличиваем счетчик обработанных файлов на 1, очищаем вывод ячейки и выводим прогресс
     i += 1
     display.clear_output(wait=True)
-    # display.display('Готово {} из {}'.format(i, cnt_docs))
+    display.display(tuple('Готово {} из {}'.format(i, cnt_docs)))
 
 # Создадим соединение с БД
 eng = sql.create_engine('postgresql://{Пользователь}:{Пароль}@{Сервер}:{Port}/{База данных}')
@@ -73,4 +73,4 @@ conn.close()
 
 # Выводим сообщение об окончании программы
 display.clear_output(wait=True)
-# display.display('Вакансии загружены в БД')
+display.display(tuple('Вакансии загружены в БД'))
