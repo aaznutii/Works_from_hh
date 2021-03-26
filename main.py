@@ -35,13 +35,12 @@ def get_page(page=0):
 # Считываем первые 2000 вакансий
 def get_pages(path):
     for page in range(0, 20):
-
         # Преобразуем текст ответа запроса в справочник Python
         js_obj = json.loads(get_page(page))
 
-        # Сохраняем файлы в папку {путь до текущего документа со скриптом}\docs\pagination
-        # Определяем количество файлов в папке для сохранения документа с ответом запроса
-        # Полученное значение используем для формирования имени документа
+    # Сохраняем файлы в папку {путь до текущего документа со скриптом}\docs\pagination
+    # Определяем количество файлов в папке для сохранения документа с ответом запроса
+    # Полученное значение используем для формирования имени документа
         next_file_name = f'{path}{len(os.listdir(path))}.json'
 
         # Создаем новый документ, записываем в него ответ запроса, после закрываем
@@ -53,17 +52,18 @@ def get_pages(path):
         if (js_obj['pages'] - page) <= 1:
             break
 
-        # Необязательная задержка, но чтобы не нагружать сервисы hh, оставим. 5 сек мы может подождать
-        time.sleep(0.25)
+        # Необязательная задержка, но чтобы не нагружать сервисы hh, оставим. 3 сек мы можем подождать
+        time.sleep(3)
     print('Старницы поиска собраны')
 
-def get_vacancies(path_get_pages, path_get_vacancies):
+
+def get_data(path_get_pages, path_get_vacancies):
+    # Создаем список id организаций
+    employers_id = []
+
     # Получаем перечень ранее созданных файлов со списком вакансий и проходимся по нему в цикле
     for fl in os.listdir(path_get_pages):
-
         # Открываем файл, читаем его содержимое, закрываем файл
-        # with open(path_get_pages, 'r', encoding='utf8') as f:
-        #     json_text = f.read()
         f = open('{}{}'.format(path_get_pages, fl), encoding='utf8')
         json_text = f.read()
         f.close()
@@ -73,27 +73,35 @@ def get_vacancies(path_get_pages, path_get_vacancies):
 
         # Получаем и проходимся по непосредственно списку вакансий
         for v in json_obj['items']:
-            # Обращаемся к API и получаем детальную информацию по конкретной вакансии
-            req = requests.get(v['url'])
-            data = req.content.decode()
-            req.close()
+            try:
+                # Обращаемся к API и получаем детальную информацию по конкретной вакансии
+                req_vacancie = requests.get(v['url'])
+                data_vacancie = req_vacancie.content.decode()
+                #  Добавляем в словарь id компании
+                data = json.loads(data_vacancie)
+                data["employer"] = v["employer"]["id"]
+                data = json.dumps(data)
+                req_vacancie.close()
 
-            # Создаем файл в формате json с идентификатором вакансии в качестве названия
-            # Записываем в него ответ запроса и закрываем файл
-            file_name = f"{path_get_vacancies}{'id'}.json"
-            f = open(file_name, mode='w', encoding='utf8')
-            f.write(data)
-            f.close()
-
-            time.sleep(0.25)
+                # # Создаем файл в формате json с идентификатором вакансии в качестве названия
+                # # Записываем в него ответ запроса и закрываем файл
+                file_name = f"{path_get_vacancies}{'id'}.json"
+                f = open(file_name, mode='w', encoding='utf8')
+                f.write(data)
+                f.close()
+                time.sleep(3)
+            except KeyError:
+                continue
     print('Вакансии собраны')
 
 
 def main():
     path_get_pages = r'C:\Users\aaznu\Works_from_hh\from_hh\docs\pagination/'
     path_get_vacancies = r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'
-    # get_pages(path_get_pages)
-    get_vacancies(path_get_pages, path_get_vacancies)
+    # names = ['Аналитик', 'Программист']
+
+    get_pages(path_get_pages)
+    get_data(path_get_pages, path_get_vacancies)
 
 
 if __name__ == '__main__':
