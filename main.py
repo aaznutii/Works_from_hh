@@ -77,7 +77,7 @@ def get_data(path_get_pages, path_get_vacancies):
         json_obj = json.loads(json_text)
 
         if count % 50 == 0:
-            time.sleep(3)
+            time.sleep(4)
 
         # Получаем и проходимся по непосредственно списку вакансий
         for v in json_obj['items']:
@@ -91,6 +91,16 @@ def get_data(path_get_pages, path_get_vacancies):
                 data["employer"] = v["employer"]["id"]
             except KeyError:
                 data["employer"] = None
+
+            # #  Добавляем в словарь ключевые компетенции по вакансии
+            # req_specializations = requests.get(f'https://api.hh.ru/vacancies/{v["id"]}')
+            # data_specializations = req_specializations.content.decode()
+            # data_spec = json.loads(data_specializations)
+            # try:
+            #     data["key_skills"] = data_spec['key_skills']
+            # except KeyError:
+            #     data["key_skills"] = None
+
             data = json.dumps(data, ensure_ascii=False)
             req_vacancie.close()
 
@@ -101,8 +111,8 @@ def get_data(path_get_pages, path_get_vacancies):
             f.write(data)
             f.close()
             # time.sleep(3)
-    with open('from_hh/docs/employers_id.json', 'w', encoding='utf-8' ) as f:
-        f.write(json.dumps(set(employers_id), ensure_ascii=False))
+    # with open('from_hh/docs/employers_id.json', 'w', encoding='utf-8' ) as f:
+    #     f.write(json.dumps(set(employers_id), ensure_ascii=False))
 
     print(f'Вакансий собрано: {count}')
     print(f'Идентификаторов работодателей записано: {len(set(employers_id))}')

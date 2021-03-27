@@ -26,8 +26,26 @@ def get_specializations():
     f.close()
 
 
-# with open("from_hh/docs/vacancies/26864852.json") as json_file:
-#     json_data = json.load(json_file)
-#     print(json_data)
-
 # get_specializations()
+
+
+def get_spec_dict():
+    with open("from_hh/docs/specializations.json") as json_file:
+        json_data = json.load(json_file)
+
+    specializations = dict()
+
+    for profarea_name in json_data:
+        profarea = profarea_name['name']
+        specializations[profarea] = ['']
+        for el in profarea_name['specializations']:
+            if el['name'] in specializations[profarea]:
+                continue
+            else:
+                specializations[profarea].append(el['name'])
+
+    for el in specializations:
+        print(el)
+
+
+
