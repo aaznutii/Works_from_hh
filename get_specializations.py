@@ -4,12 +4,6 @@ import requests
 # Пакет для удобной работы с данными в формате json
 import json
 
-# Модуль для работы со значением времени
-import time
-
-# Модуль для работы с операционной системой. Будем использовать для работы с файлами
-import os
-
 
 def get_specializations():
     """
@@ -30,22 +24,27 @@ def get_specializations():
 
 
 def get_spec_dict():
-    with open("from_hh/docs/specializations.json") as json_file:
-        json_data = json.load(json_file)
+    f = open("from_hh/docs/specializations.json", encoding='utf8')
+    json_text = f.read()
+    f.close()
+    json_data = json.loads(json_text)
 
-    specializations = dict()
+    specializations = []
 
     for profarea_name in json_data:
-        profarea = profarea_name['name']
-        specializations[profarea] = ['']
         for el in profarea_name['specializations']:
-            if el['name'] in specializations[profarea]:
-                continue
-            else:
-                specializations[profarea].append(el['name'])
+            specializations.append(el['name'])
+    print(specializations)
 
-    for el in specializations:
-        print(el)
+
+get_spec_dict()
+
+# f = open('from_hh/docs/vacancies/32724608.json', encoding='utf8')
+# json_text = f.read()
+# f.close()
+# json_obj = json.loads(json_text)
+# for i, el in enumerate(json_obj):
+#     print(f'{i}, {el}')
 
 
 

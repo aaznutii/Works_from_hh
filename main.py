@@ -11,10 +11,7 @@ import time
 import os
 
 
-
-
 def get_page(page=0, name=None):
-
     """
     Создаем метод для получения страницы со списком вакансий.
     Аргументы:
@@ -110,9 +107,6 @@ def get_data(path_get_pages, path_get_vacancies):
             f = open(file_name, mode='w', encoding='utf8')
             f.write(data)
             f.close()
-            # time.sleep(3)
-    # with open('from_hh/docs/employers_id.json', 'w', encoding='utf-8' ) as f:
-    #     f.write(json.dumps(set(employers_id), ensure_ascii=False))
 
     print(f'Вакансий собрано: {count}')
     print(f'Идентификаторов работодателей записано: {len(set(employers_id))}')
