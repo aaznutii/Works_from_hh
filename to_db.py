@@ -11,9 +11,12 @@ import pandas as pd
 
 import json
 import os
+from datetime import date
+
 
 # Библиотека для работы с СУБД
-from sqlalchemy import engine as sql
+# from sqlalchemy import engine as sql
+import psycopg2
 
 # Модуль для работы с отображением вывода Jupyter
 from IPython import display
@@ -39,18 +42,22 @@ i = 0
 for fl in os.listdir(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'):
 
     # Открываем, читаем и закрываем файл
-    f = open('./from_hh/docs/vacancies/{}'.format(fl), encoding='utf8')
-    json_text = f.read()
-    f.close()
+    with open(f'./from_hh/docs/vacancies/{fl}') as json_file:
+        json_obj = json.load(json_file)
+
+
+    # f = open(, encoding='utf8')
+    # json_text = f.read()
+    # f.close()
 
     # Текст файла переводим в справочник
-    json_obj = json.loads(json_text)
+    # json_obj = json.loads(json_text)
 
     # Заполняем списки для таблиц
     ids.append(json_obj['id'])
     names.append(json_obj['name'])
     descriptions.append(json_obj['description'])
-    id_employers.append('employer')
+    id_employers.append(json_obj['employer'])
 
     # Т.к. навыки хранятся в виде массива, то проходимся по нему циклом
     for skl in json_obj['key_skills']:
@@ -63,22 +70,27 @@ for fl in os.listdir(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'):
     # display.display(tuple('Готово {} из {}'.format(i, cnt_docs)))
     print('Готово {} из {}'.format(i, cnt_docs))
 
-passvd = int('Введите пароль')
+# passvd = input('Введите пароль')
 # Создадим соединение с БД
-eng = sql.create_engine('postgresql://{postgres}:' + f'{passvd}' + '@{127.0.0.1}:{5432}/{hh}')
-conn = eng.connect()
+# eng = sql.create_engine('postgresql://{postgres}:{}@{localhost}:{}/{hh}')
+# conn = eng.connect()
+# try:
+# conn = psycopg2.connect(dbname="postgres", user="postgres", password="hh1982", host="localhost")
 
+now = date.today().strftime("%d%m%Y")
 # Создаем пандосовский датафрейм, который затем сохраняем в БД в таблицу vacancies
-df = pd.DataFrame({'id': ids, 'name': names, 'description': descriptions})
-df.to_sql('vacancies', conn, schema='public', if_exists='append', index=False)
+df = pd.DataFrame({'id': ids, 'name': names, 'description': descriptions, 'id_employers': id_employers})
+# df.to_sql('vacancies', conn, schema='public', if_exists='append', index=False)
+df.to_csv(f'from_hh/result/hh_vacancies_{now}.csv')
 
 # Тоже самое, но для таблицы skills
 df = pd.DataFrame({'vacancy': skills_vac, 'skill': skills_name})
-df.to_sql('skills', conn, schema='public', if_exists='append', index=False)
+# df.to_sql('skills', conn, schema='public', if_exists='append', index=False)
+df.to_csv(f'from_hh/result/hh_skills_{now}.csv')
 
 # Закрываем соединение с БД
-conn.close()
+# conn.close()
 
 # Выводим сообщение об окончании программы
-display.clear_output(wait=True)
-display.display(tuple('Вакансии загружены в БД'))
+# display.clear_output(wait=True)
+# display.display(tuple('Вакансии загружены в БД'))

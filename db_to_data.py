@@ -1,12 +1,12 @@
 import sqlalchemy
 
-conn = sqlalchemy.create_engine('postgresql://{Пользователь}:{Пароль}@{Сервер}:{Port}/{База данных}').connect()
+# conn = sqlalchemy.create_engine('postgresql://{Пользователь}:{Пароль}@{Сервер}:{Port}/{База данных}').connect()
 
 import pandas as pd
 
 # Загружаем наименования вакансий
-sql = 'select name from public.vacancies'
-vacancies_name = pd.read_sql(sql, conn).name
+# sql = 'select name from public.vacancies'
+vacancies_name = pd.read_csv('from_hh/result/hh_vacancies.csv')
 
 # Загружаем навыки по вакансиям
 sql = """
@@ -19,10 +19,10 @@ sql = """
             on v.id = s.vacancy
 """
 
-skills = pd.read_sql(sql, conn)
+skills = pd.read_csv('from_hh/result/hh_skills.csv')
 
 # Закрываем соединение с БД
-conn.close()
+# conn.close()
 
 # sklearn - библиотека, содержащая набор инструментов для машинного обучения.
 # feature_extraction.text извлекает признаки из текста, которые затем можно будет
