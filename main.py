@@ -18,7 +18,7 @@ def get_page(page=0, name=None):
         page - Индекс страницы, начинается с 0. Значение по умолчанию 0, т.е. первая страница
     """
     if name is None:
-        name = 'Аналитик'
+        name = '*'
     else:
     # Справочник для параметров GET-запроса
         params = {
@@ -73,13 +73,18 @@ def get_data(path_get_pages, path_get_vacancies):
         # Преобразуем полученный текст в объект справочника
         json_obj = json.loads(json_text)
 
+        # Делаем паузу в обращениях через каждые 50 запросов.
         if count % 50 == 0:
-            time.sleep(4)
+            time.sleep(3)
 
         # Получаем и проходимся по непосредственно списку вакансий
         for v in json_obj['items']:
-            count += 1
+
             # Обращаемся к API и получаем детальную информацию по конкретной вакансии
+            # try:
+            #     req_vacancie = requests.get(v['url'])
+            # except ConnectionError:
+            #     requests.Session.close()
             req_vacancie = requests.get(v['url'])
             data_vacancie = req_vacancie.content.decode()
             data = json.loads(data_vacancie)
@@ -89,15 +94,6 @@ def get_data(path_get_pages, path_get_vacancies):
             except KeyError:
                 data["employer"] = None
 
-            # #  Добавляем в словарь ключевые компетенции по вакансии
-            # req_specializations = requests.get(f'https://api.hh.ru/vacancies/{v["id"]}')
-            # data_specializations = req_specializations.content.decode()
-            # data_spec = json.loads(data_specializations)
-            # try:
-            #     data["key_skills"] = data_spec['key_skills']
-            # except KeyError:
-            #     data["key_skills"] = None
-
             data = json.dumps(data, ensure_ascii=False)
             req_vacancie.close()
 
@@ -106,7 +102,9 @@ def get_data(path_get_pages, path_get_vacancies):
             file_name = f"{path_get_vacancies}{v['id']}.json"
             f = open(file_name, mode='w', encoding='utf8')
             f.write(data)
+            print(f'Файл создан: {file_name}')
             f.close()
+
 
     print(f'Вакансий собрано: {count}')
     print(f'Идентификаторов работодателей записано: {len(set(employers_id))}')
@@ -116,13 +114,16 @@ def main():
     path_get_pages = r'C:\Users\aaznu\Works_from_hh\from_hh\docs\pagination/'
     path_get_vacancies = r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'
 
-    names = ['Аналитик', 'Программист', 'Педагог', 'Учитель', 'Воспитатель', 'Химик', 'Социалный работник',
-             'Инженер', 'Сварщик', 'Психолог', 'Переводчик', 'Электрик', 'Социолог', 'Няня', 'Документовед',
-             'Делопроизводитель', 'Секретарь', 'Копирайтер', 'Редактор', 'СММ', 'Корректор',
-             'Системный администратор']
+    """['Аналитик', 'Программист', 'Педагог', 'Учитель', 'Воспитатель', 'Химик', 'Социалный работник',
+     'Инженер', 'Сварщик', 'Психолог', 'Переводчик', 'Электрик', 'Социолог', 'Няня', 'Документовед',
+     'Делопроизводитель', 'Секретарь', 'Копирайтер', 'Редактор', 'СММ', 'Корректор',
+     'Системный администратор']"""
+
+    names = ['ЧПУ', 'Наладчик', 'Технолог', 'SEO', 'Специалист']
 
     for name in names:
         get_pages(path_get_pages, name)
+
     get_data(path_get_pages, path_get_vacancies)
 
 
