@@ -6,6 +6,8 @@ https://office-menu.ru/python/96-api-hh
 # данные в БД. Можно было бы написать простые insert-ы
 import pandas as pd
 
+import re
+
 # Импортируем модуль вывода jupyter
 # from IPython import display
 
@@ -14,13 +16,16 @@ import os
 from datetime import date
 
 
+
 # Создаем списки для столбцов таблицы vacancies
 ids = []  # Список идентификаторов вакансий
 names = []  # Список наименований вакансий
 descriptions = []  # Список описаний вакансий
 id_employers = []  # Список с id работодателей
 
-spec_vac = []  # Список идентификаторов вакансий
+spec_vac = []   # Список идентификаторов вакансий
+spec_name_vac = []    # Название вакансии
+spec_id_employers = []  #   Код работодателя
 spec_profarea = []       # Прфессиональная сфера
 spec_name = []    # Специализация
 
@@ -46,11 +51,11 @@ for fl in os.listdir(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'):
 
         # Текст файла переводим в справочник
         json_obj = json.loads(json_text)
-
+        good_descript =json_obj['description']          #re.findall(r"А-я+", json_obj['description'])
         # Заполняем списки для таблиц
         ids.append(json_obj['id'])
         names.append(json_obj['name'])
-        descriptions.append(json_obj['description'])
+        descriptions.append(good_descript)
         id_employers.append(json_obj['employer'])
 
         # Т.к. навыки хранятся в виде массива, то проходимся по нему циклом
@@ -60,12 +65,12 @@ for fl in os.listdir(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'):
 
         for el in json_obj['specializations']:
             spec_vac.append(json_obj['id'])
+            spec_name_vac.append(json_obj['name'])
+            spec_id_employers.append(json_obj['employer'])
             spec_name.append(el['name'])
 
         # Увеличиваем счетчик обработанных файлов на 1, очищаем вывод ячейки и выводим прогресс
         i += 1
-
-        print('Готово {} из {}'.format(i, cnt_docs))
     except UnicodeDecodeError:
         data_err = os.path.basename(fl)
         with open('log.txt', 'a', encoding='utf-8') as f:
@@ -73,6 +78,8 @@ for fl in os.listdir(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'):
         continue
     except KeyError:
         continue
+    print('Готово {} из {}'.format(i, cnt_docs))
+
 
 # Фиксируем дату обращения для создания файла
 now = date.today().strftime("%d%m%Y")
@@ -80,15 +87,15 @@ now = date.today().strftime("%d%m%Y")
 # Создаем пандосовский датафрейм, который затем сохраняем в БД в таблицу vacancies
 df = pd.DataFrame({'id': ids, 'name': names, 'description': descriptions, 'id_employers': id_employers})
 df.to_csv(f'from_hh/result/hh_vacancies_{now}.csv')
-# Для удобства сохраняю на рабочий стол
-df.to_csv(f'/Users/aaznu/Desktop/hh_vacancies_{now}.csv')
+# # Для удобства сохраняю на рабочий стол
+# df.to_csv(f'/Users/aaznu/Desktop/hh_vacancies_{now}.csv')
 
 # Тоже самое, но для таблицы skills
 df = pd.DataFrame({'vacancy': skills_vac, 'skill': skills_name})
 df.to_csv(f'from_hh/result/hh_skills_{now}.csv')
 
 # Тоже самое, но для таблицы spec
-df = pd.DataFrame({'vacancy': spec_vac, 'skill': spec_name})
+df = pd.DataFrame({'vacancy': spec_vac, 'name_vac': spec_name_vac, 'id_empl': spec_id_employers, 'skill': spec_name})
 df.to_csv(f'from_hh/result/hh_spec_{now}.csv')
 
 #  Создаем файл с id работодателей
