@@ -20,7 +20,7 @@ def get_page(page=0, name=None):
     if name is None:
         name = '*'
     else:
-    # Справочник для параметров GET-запроса
+        # Справочник для параметров GET-запроса
         params = {
             'text': f'NAME:{name}',  # Текст фильтра. В имени должно быть слово "Аналитик"
             'area': 1586,  # Поиск ощуществляется по вакансиям Самарская область
@@ -104,7 +104,6 @@ def get_data(path_get_pages, path_get_vacancies):
             f.write(data)
             print(f'Файл создан: {file_name}')
             f.close()
-
 
     print(f'Вакансий собрано: {count}')
     print(f'Идентификаторов работодателей записано: {len(set(employers_id))}')

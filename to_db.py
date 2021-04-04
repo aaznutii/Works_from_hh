@@ -6,7 +6,7 @@ https://office-menu.ru/python/96-api-hh
 # данные в БД. Можно было бы написать простые insert-ы
 import pandas as pd
 
-import re
+import openpyxl
 
 # Импортируем модуль вывода jupyter
 # from IPython import display
@@ -87,8 +87,7 @@ now = date.today().strftime("%d%m%Y")
 # Создаем пандосовский датафрейм, который затем сохраняем в БД в таблицу vacancies
 df = pd.DataFrame({'id': ids, 'name': names, 'description': descriptions, 'id_employers': id_employers})
 df.to_csv(f'from_hh/result/hh_vacancies_{now}.csv')
-# # Для удобства сохраняю на рабочий стол
-# df.to_csv(f'/Users/aaznu/Desktop/hh_vacancies_{now}.csv')
+
 
 # Тоже самое, но для таблицы skills
 df = pd.DataFrame({'vacancy': skills_vac, 'skill': skills_name})
@@ -97,6 +96,8 @@ df.to_csv(f'from_hh/result/hh_skills_{now}.csv')
 # Тоже самое, но для таблицы spec
 df = pd.DataFrame({'vacancy': spec_vac, 'name_vac': spec_name_vac, 'id_empl': spec_id_employers, 'skill': spec_name})
 df.to_csv(f'from_hh/result/hh_spec_{now}.csv')
+# Для удобства сохраняю на рабочий стол
+df.to_excel(f'/Users/aaznu/Desktop/hh_spec_{now}.xlsx')
 
 #  Создаем файл с id работодателей
 with open(f'./from_hh/docs/employers_id_{now}.', 'a', encoding='utf-8') as employers_file:
