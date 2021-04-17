@@ -32,6 +32,7 @@ spec_name = []    # Специализация
 # Создаем списки для столбцов таблицы skills
 skills_vac = []  # Список идентификаторов вакансий
 skills_name = []  # Список названий навыков
+skills_prof = []  # Список названий выборки профессий
 
 #
 # В выводе будем отображать прогресс
@@ -60,8 +61,14 @@ for fl in os.listdir(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'):
 
         # Т.к. навыки хранятся в виде массива, то проходимся по нему циклом
         for skl in json_obj['key_skills']:
-            skills_vac.append(json_obj['id'])
-            skills_name.append(skl['name'])
+            if len([json_obj['id'], json_obj['name_vac'], skl['name']]) == 3:
+                skills_vac.append(json_obj['id'])
+                skills_prof.append(json_obj['name_vac'])
+                skills_name.append(skl['name'])
+            else:
+                with open('log.txt', 'a', encoding='utf-8') as f:
+                    skl_err = f'Ошибка заполнения данных для таблицы skills. Файл: {fl}\n'
+                    f.write(skl_err)
 
         for el in json_obj['specializations']:
             spec_vac.append(json_obj['id'])
@@ -72,11 +79,16 @@ for fl in os.listdir(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'):
         # Увеличиваем счетчик обработанных файлов на 1, очищаем вывод ячейки и выводим прогресс
         i += 1
     except UnicodeDecodeError:
+        print('Ошибка чтения файла')
         data_err = os.path.basename(fl)
         with open('log.txt', 'a', encoding='utf-8') as f:
             f.write(data_err)
         continue
-    except KeyError:
+    except KeyError as er:
+        with open('log.txt', 'a', encoding='utf-8') as f:
+            key_err = f'Ошибка доступа по ключу: {er}. Файл: {fl}\n'
+            f.write(key_err)
+        print(f'Ошибка доступа по ключу. {er}')
         continue
     print('Готово {} из {}'.format(i, cnt_docs))
 
@@ -88,13 +100,12 @@ now = date.today().strftime("%d%m%Y")
 df = pd.DataFrame({'id': ids, 'name': names, 'description': descriptions, 'id_employers': id_employers})
 df.to_csv(f'from_hh/result/hh_vacancies_{now}.csv')
 
-
 # Тоже самое, но для таблицы skills
-df = pd.DataFrame({'vacancy': skills_vac, 'skill': skills_name})
+df = pd.DataFrame({'vacancy': skills_vac, 'skill': skills_name, 'prof': skills_prof})
 df.to_csv(f'from_hh/result/hh_skills_{now}.csv')
 
 # Тоже самое, но для таблицы spec
-df = pd.DataFrame({'vacancy': spec_vac, 'name_vac': spec_name_vac, 'id_empl': spec_id_employers, 'skill': spec_name})
+df = pd.DataFrame({'vacancy': spec_vac, 'spec_name_vac': spec_name_vac, 'id_empl': spec_id_employers, 'skill': spec_name})
 df.to_csv(f'from_hh/result/hh_spec_{now}.csv')
 # Для удобства сохраняю на рабочий стол
 df.to_excel(f'/Users/aaznu/Desktop/hh_spec_{now}.xlsx')

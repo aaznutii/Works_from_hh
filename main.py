@@ -4,11 +4,28 @@ import requests
 # Пакет для удобной работы с данными в формате json
 import json
 
+# Библиотека для сохранения в csv - Для создания справочника работодателей
+import pandas as pd
+
 # Модуль для работы со значением времени
 import time
 
 # Модуль для работы с операционной системой. Будем использовать для работы с файлами
 import os
+
+# регулярные выражения
+import re
+
+# Генератор случайных чисел
+import random
+
+"""[]"""
+
+names = ['Лаборант', 'Юрист', 'Юристконсульт', 'Фотограф', 'Журналист', 'Оператор', 'SMM', 'Аналитик',
+         'Программист', 'Педагог', 'Учитель', 'Воспитатель', 'Химик', 'Социалный работник', 'Социолог', 'Инженер',
+         'Сварщик', 'Психолог', 'Переводчик', 'Электрик', 'Социолог', 'Няня', 'Документовед','Делопроизводитель',
+         'Секретарь', 'Копирайтер', 'Редактор', 'СММ', 'Корректор', 'Системный администратор', 'ЧПУ', 'Наладчик',
+         'Технолог', 'SEO', 'Специалист', 'Менеджер', 'Логист', 'Экскурсовод', 'HR']
 
 
 def get_page(page=0, name=None):
@@ -43,7 +60,7 @@ def get_pages(path, name):
     # Сохраняем файлы в папку {путь до текущего документа со скриптом}\docs\pagination
     # Определяем количество файлов в папке для сохранения документа с ответом запроса
     # Полученное значение используем для формирования имени документа
-        next_file_name = f'{path}{len(os.listdir(path))}.json'
+        next_file_name = f'{path}{len(os.listdir(path))}_{name}.json'
 
         # Создаем новый документ, записываем в него ответ запроса, после закрываем
         f = open(next_file_name, mode='w', encoding='utf8')
@@ -61,10 +78,13 @@ def get_pages(path, name):
 
 def get_data(path_get_pages, path_get_vacancies):
     # Создаем список id организаций
-    employers_id = []
+    df_employers = {'id': [], 'name': [], 'name_vac': []}
     count = 0
     # Получаем перечень ранее созданных файлов со списком вакансий и проходимся по нему в цикле
     for fl in os.listdir(path_get_pages):
+        # забираем имя вакансии
+        name_vac = ''.join(re.findall(r'[^\d_.json]', os.path.basename(fl)))
+
         # Открываем файл, читаем его содержимое, закрываем файл
         f = open('{}{}'.format(path_get_pages, fl), encoding='utf8')
         json_text = f.read()
@@ -77,52 +97,62 @@ def get_data(path_get_pages, path_get_vacancies):
         if count % 50 == 0:
             time.sleep(3)
 
-        # Получаем и проходимся по непосредственно списку вакансий
+        # Получаем и проходимся непосредственно по списку вакансий
         for v in json_obj['items']:
-
+            except_count = 0
+            """
+            Попытка получить данные по 'url' с учетом прерывания доступа.
+            """
             # Обращаемся к API и получаем детальную информацию по конкретной вакансии
-            # try:
-            #     req_vacancie = requests.get(v['url'])
-            # except ConnectionError:
-            #     requests.Session.close()
-            req_vacancie = requests.get(v['url'])
-            data_vacancie = req_vacancie.content.decode()
-            data = json.loads(data_vacancie)
-            #  Добавляем в словарь id компании-нанимателя
             try:
-                data["employer"] = v["employer"]["id"]
-            except KeyError:
-                data["employer"] = None
-
-            data = json.dumps(data, ensure_ascii=False)
-            req_vacancie.close()
-
-            # Создаем файл в формате json с идентификатором вакансии в качестве названия
-            # Записываем в него ответ запроса и закрываем файл
-            file_name = f"{path_get_vacancies}{v['id']}.json"
-            f = open(file_name, mode='w', encoding='utf8')
-            f.write(data)
-            print(f'Файл создан: {file_name}')
-            f.close()
-
+                req_vacancie = requests.get(v['url'])
+                data_vacancie = req_vacancie.content.decode()
+                data = json.loads(data_vacancie)
+                data['name_vac'] = name_vac
+                #  Добавляем в основной словарь  id компаний-нанимателей. Формирует словарь компаний
+                try:
+                    data["employer"] = v["employer"]["id"]
+                    df_employers['id'].append(v["employer"]["id"])
+                    df_employers['name'].append(v["employer"]["name"])
+                    df_employers['name_vac'].append(name_vac)
+                except KeyError:
+                    data["employer"] = "None"
+                    df_employers['id'].append("None")
+                    df_employers['name'].append("None")
+                    df_employers['name_vac'].append(name_vac)
+                data = json.dumps(data, ensure_ascii=False)
+                req_vacancie.close()
+                # Создаем файл в формате json с идентификатором вакансии в качестве названия
+                # Записываем в него ответ запроса и закрываем файл
+                file_name = f"{path_get_vacancies}{v['id']}.json"
+                f = open(file_name, mode='w', encoding='utf8')
+                f.write(data)
+                print(f'Файл создан: {file_name} для вакансии {name_vac}')
+                f.close()
+                count += 1
+            except ConnectionError:
+                if except_count < 10:
+                    pause = random.randrange(2, 6)
+                    print(f'Ошибка доступа к файлу. Программа установлена на паузу: {pause} секунд.')
+                    except_count += 1
+                    time.sleep(pause)
+                else:
+                    break
+    # Преобразуем словарь в датафрейм и сохраняем в csv
+    df = pd.DataFrame(df_employers)
+    df.to_csv(r'C:\Users\aaznu\Works_from_hh\from_hh\result\hh_employers.csv')
     print(f'Вакансий собрано: {count}')
-    print(f'Идентификаторов работодателей записано: {len(set(employers_id))}')
+    print(f'Идентификаторов работодателей записано: {len(df_employers["id"])}')
+
+
+# def get_vacancies():
 
 
 def main():
     path_get_pages = r'C:\Users\aaznu\Works_from_hh\from_hh\docs\pagination/'
     path_get_vacancies = r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'
-
-    """['Аналитик', 'Программист', 'Педагог', 'Учитель', 'Воспитатель', 'Химик', 'Социалный работник',
-     'Инженер', 'Сварщик', 'Психолог', 'Переводчик', 'Электрик', 'Социолог', 'Няня', 'Документовед',
-     'Делопроизводитель', 'Секретарь', 'Копирайтер', 'Редактор', 'СММ', 'Корректор',
-     'Системный администратор']"""
-
-    names = ['ЧПУ', 'Наладчик', 'Технолог', 'SEO', 'Специалист']
-
-    for name in names:
+    for name in set(names):
         get_pages(path_get_pages, name)
-
     get_data(path_get_pages, path_get_vacancies)
 
 
