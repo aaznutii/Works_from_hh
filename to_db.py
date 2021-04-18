@@ -99,10 +99,14 @@ now = date.today().strftime("%d%m%Y")
 # Создаем пандосовский датафрейм, который затем сохраняем в БД в таблицу vacancies
 df = pd.DataFrame({'id': ids, 'name': names, 'description': descriptions, 'id_employers': id_employers})
 df.to_csv(f'from_hh/result/hh_vacancies_{now}.csv')
+# Для удобства сохраняю на рабочий стол
+df.to_excel(f'/Users/aaznu/Desktop/hh_vacancies_{now}.xlsx')
 
 # Тоже самое, но для таблицы skills
 df = pd.DataFrame({'vacancy': skills_vac, 'skill': skills_name, 'prof': skills_prof})
 df.to_csv(f'from_hh/result/hh_skills_{now}.csv')
+# Для удобства сохраняю на рабочий стол
+df.to_excel(f'/Users/aaznu/Desktop/hh_skills_{now}.xlsx')
 
 # Тоже самое, но для таблицы spec
 df = pd.DataFrame({'vacancy': spec_vac, 'spec_name_vac': spec_name_vac, 'id_empl': spec_id_employers, 'skill': spec_name})

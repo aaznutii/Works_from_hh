@@ -19,13 +19,13 @@ import re
 # Генератор случайных чисел
 import random
 
-"""[]"""
-
-names = ['Лаборант', 'Юрист', 'Юристконсульт', 'Фотограф', 'Журналист', 'Оператор', 'SMM', 'Аналитик',
+"""['Лаборант', 'Юрист', 'Юристконсульт', 'Фотограф', 'Журналист', 'Оператор', 'SMM', 'Аналитик',
          'Программист', 'Педагог', 'Учитель', 'Воспитатель', 'Химик', 'Социалный работник', 'Социолог', 'Инженер',
-         'Сварщик', 'Психолог', 'Переводчик', 'Электрик', 'Социолог', 'Няня', 'Документовед','Делопроизводитель',
+         'Сварщик', 'Психолог', 'Переводчик', 'Электрик', 'Социолог', 'Няня', 'Документовед', 'Делопроизводитель',
          'Секретарь', 'Копирайтер', 'Редактор', 'СММ', 'Корректор', 'Системный администратор', 'ЧПУ', 'Наладчик',
-         'Технолог', 'SEO', 'Специалист', 'Менеджер', 'Логист', 'Экскурсовод', 'HR']
+         'Технолог', 'SEO', 'Специалист', 'Менеджер', 'Логист', 'Экскурсовод', 'HR']"""
+
+names = []
 
 
 def get_page(page=0, name=None):
@@ -105,6 +105,7 @@ def get_data(path_get_pages, path_get_vacancies):
             """
             # Обращаемся к API и получаем детальную информацию по конкретной вакансии
             try:
+                os.listdir(path_get_pages)
                 req_vacancie = requests.get(v['url'])
                 data_vacancie = req_vacancie.content.decode()
                 data = json.loads(data_vacancie)
@@ -140,9 +141,8 @@ def get_data(path_get_pages, path_get_vacancies):
                     break
     # Преобразуем словарь в датафрейм и сохраняем в csv
     df = pd.DataFrame(df_employers)
-    df.to_csv(r'C:\Users\aaznu\Works_from_hh\from_hh\result\hh_employers.csv')
+    df.to_csv(r'C:\Users\aaznu\Works_from_hh\from_hh\result\hh_employers.csv', mode='a')
     print(f'Вакансий собрано: {count}')
-    print(f'Идентификаторов работодателей записано: {len(df_employers["id"])}')
 
 
 # def get_vacancies():
@@ -151,8 +151,8 @@ def get_data(path_get_pages, path_get_vacancies):
 def main():
     path_get_pages = r'C:\Users\aaznu\Works_from_hh\from_hh\docs\pagination/'
     path_get_vacancies = r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'
-    for name in set(names):
-        get_pages(path_get_pages, name)
+    # for name in set(names):
+    #     get_pages(path_get_pages, name)
     get_data(path_get_pages, path_get_vacancies)
 
 
