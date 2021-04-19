@@ -1,12 +1,12 @@
 import sqlalchemy
 
-# conn = sqlalchemy.create_engine('postgresql://{Пользователь}:{Пароль}@{Сервер}:{Port}/{База данных}').connect()
+conn = sqlalchemy.create_engine('postgresql://{root}:{Пароль}@{localhost}:{Port}/{База данных}').connect()
 
 import pandas as pd
 
 # Загружаем наименования вакансий
 # sql = 'select name from public.vacancies'
-vacancies_name = pd.read_csv('from_hh/result/hh_vacancies.csv')
+vacancies_name = pd.read_csv('from_hh/result/hh_vacancies_18042021.csv')
 
 # Загружаем навыки по вакансиям
 sql = """

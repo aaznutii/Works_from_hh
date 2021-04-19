@@ -1,9 +1,7 @@
 import pandas as pd
-import os
-import re
 
+df = pd.read_csv(r'C:\Users\aaznu\Works_from_hh\from_hh\result\hh_skills.csv')
+column = ['Unnamed: 0', 'vacancy', 'skill', 'prof', 'date']
+viev_skl = df.groupby('prof')['skill'].value_counts()
 
-name_vac = ''.join(re.findall(r'[^\d_.json]',
-                              os.path.basename(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\pagination\0_Менеджер hh.json')))
-
-print(name_vac)
+print(viev_skl)

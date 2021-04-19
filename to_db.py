@@ -6,15 +6,15 @@ https://office-menu.ru/python/96-api-hh
 # данные в БД. Можно было бы написать простые insert-ы
 import pandas as pd
 
-import openpyxl
-
-# Импортируем модуль вывода jupyter
-# from IPython import display
-
 import json
 import os
 from datetime import date
 
+# Для удаления тегов
+from lxml import html
+
+# Фиксируем дату обращения
+now = date.today().strftime("%d-%m-%Y")
 
 
 # Создаем списки для столбцов таблицы vacancies
@@ -22,6 +22,7 @@ ids = []  # Список идентификаторов вакансий
 names = []  # Список наименований вакансий
 descriptions = []  # Список описаний вакансий
 id_employers = []  # Список с id работодателей
+prof_name = []     # Список наименований профессий (ключевые слова поиска)
 
 spec_vac = []   # Список идентификаторов вакансий
 spec_name_vac = []    # Название вакансии
@@ -43,7 +44,6 @@ i = 0
 
 # Проходимся по всем файлам в папке vacancies
 for fl in os.listdir(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'):
-
     try:
         # Открываем, читаем и закрываем файл
         f = open(f'./from_hh/docs/vacancies/{fl}', encoding='utf-8')
@@ -52,19 +52,23 @@ for fl in os.listdir(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'):
 
         # Текст файла переводим в справочник
         json_obj = json.loads(json_text)
-        good_descript =json_obj['description']          #re.findall(r"А-я+", json_obj['description'])
+        # Очищаем описание вакансии от тегов
+        good_descript = html.fromstring(json_obj['description']).text_content()
         # Заполняем списки для таблиц
         ids.append(json_obj['id'])
         names.append(json_obj['name'])
         descriptions.append(good_descript)
         id_employers.append(json_obj['employer'])
+        prof_name.append(json_obj['name_vac'])
 
-        # Т.к. навыки хранятся в виде массива, то проходимся по нему циклом
+        # Т.к. навыки хранятся в виде массива, то проходимся по нему циклом.
         for skl in json_obj['key_skills']:
+            # Для обхода ошибки получения данных по ключу при получении имени  и id проверяем равенство списка
             if len([json_obj['id'], json_obj['name_vac'], skl['name']]) == 3:
                 skills_vac.append(json_obj['id'])
                 skills_prof.append(json_obj['name_vac'])
-                skills_name.append(skl['name'])
+                skill = str(skl['name']).lower()
+                skills_name.append(skill)
             else:
                 with open('log.txt', 'a', encoding='utf-8') as f:
                     skl_err = f'Ошибка заполнения данных для таблицы skills. Файл: {fl}\n'
@@ -84,40 +88,27 @@ for fl in os.listdir(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'):
         with open('log.txt', 'a', encoding='utf-8') as f:
             f.write(data_err)
         continue
-    except KeyError as er:
-        with open('log.txt', 'a', encoding='utf-8') as f:
-            key_err = f'Ошибка доступа по ключу: {er}. Файл: {fl}\n'
-            f.write(key_err)
-        print(f'Ошибка доступа по ключу. {er}')
-        continue
+
     print('Готово {} из {}'.format(i, cnt_docs))
 
 
-# Фиксируем дату обращения для создания файла
-now = date.today().strftime("%d%m%Y")
-
 # Создаем пандосовский датафрейм, который затем сохраняем в БД в таблицу vacancies
-df = pd.DataFrame({'id': ids, 'name': names, 'description': descriptions, 'id_employers': id_employers})
-df.to_csv(f'from_hh/result/hh_vacancies_{now}.csv')
+df = pd.DataFrame({'id': ids, 'name': names, 'description': descriptions,
+                   'id_employers': id_employers, 'prof_name': prof_name, 'date': now})
+# df['date'] = now
+df.to_csv(f'from_hh/result/hh_vacancies.csv', mode='a')
 # Для удобства сохраняю на рабочий стол
-df.to_excel(f'/Users/aaznu/Desktop/hh_vacancies_{now}.xlsx')
+df.to_excel(f'/Users/aaznu/Desktop/hh_vacancies.xlsx')
 
 # Тоже самое, но для таблицы skills
-df = pd.DataFrame({'vacancy': skills_vac, 'skill': skills_name, 'prof': skills_prof})
-df.to_csv(f'from_hh/result/hh_skills_{now}.csv')
+df = pd.DataFrame({'vacancy': skills_vac, 'skill': skills_name, 'prof': skills_prof, 'date': now})
+df.to_csv(f'from_hh/result/hh_skills.csv', mode='a')
 # Для удобства сохраняю на рабочий стол
-df.to_excel(f'/Users/aaznu/Desktop/hh_skills_{now}.xlsx')
+df.to_excel(f'/Users/aaznu/Desktop/hh_skills.xlsx')
 
 # Тоже самое, но для таблицы spec
-df = pd.DataFrame({'vacancy': spec_vac, 'spec_name_vac': spec_name_vac, 'id_empl': spec_id_employers, 'skill': spec_name})
-df.to_csv(f'from_hh/result/hh_spec_{now}.csv')
+df = pd.DataFrame({'vacancy': spec_vac, 'spec_name_vac': spec_name_vac,
+                   'id_empl': spec_id_employers, 'skill': spec_name, 'date': now})
+df.to_csv(f'from_hh/result/hh_spec.csv', mode='a')
 # Для удобства сохраняю на рабочий стол
-df.to_excel(f'/Users/aaznu/Desktop/hh_spec_{now}.xlsx')
-
-#  Создаем файл с id работодателей
-with open(f'./from_hh/docs/employers_id_{now}.', 'a', encoding='utf-8') as employers_file:
-    for el in id_employers:
-        if el is None:
-            employers_file.write('None'+'\n')
-        else:
-            employers_file.write(el+'\n')
+df.to_excel(f'/Users/aaznu/Desktop/hh_spec.xlsx')
