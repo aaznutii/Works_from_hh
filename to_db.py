@@ -67,6 +67,7 @@ for fl in os.listdir(r'C:\Users\aaznu\Works_from_hh\from_hh\docs\vacancies/'):
             if len([json_obj['id'], json_obj['name_vac'], skl['name']]) == 3:
                 skills_vac.append(json_obj['id'])
                 skills_prof.append(json_obj['name_vac'])
+                # Типизация записей. Приведение к нижнему регистру
                 skill = str(skl['name']).lower()
                 skills_name.append(skill)
             else:
